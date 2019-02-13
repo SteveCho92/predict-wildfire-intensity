@@ -6,9 +6,23 @@
 </head>
 <body>
   <h1>Wildfire Predictor</h1>
-  <div id="map"></div>
+  <div id="map">
+  </div>
   <div id="help-message">
-    Please select a point on the map to retrieve Watson's intensity prediction.
+  </div>
+  <div id="form">
+      <form id="input-form" >
+        <label>Temperature  C</label>
+        <input type="text" name="temp" id="temp">
+        <label>Precipitation: </label>
+        <input type="text" name="precip" id="precip">
+        <label>Humidity: </label>
+        <input type="text" name="humidity" id="humidity">
+        <label>Pressure: </label>
+        <input type="text" name="pressure" id="press">
+        <label>Wind Speed: </label>
+        <input type="text" name="wind" id="wind">
+    </form> 
   </div>
   <div id="ml">
     <div id="ml-input">
@@ -45,7 +59,7 @@
   * The callback parameter executes the initMap() function
 -->
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key=APIKEY&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQsWDIRvbFxp6-lGl2tenjo70S2Eejdg0&callback=initMap">
 </script>
 </body>
 </html>

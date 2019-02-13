@@ -116,8 +116,8 @@
      console.log("response");
      console.log(response);
 
-     document.getElementById("ml-output").innerHTML = response.values[0][3].toFixed(2);
-     setBarWidth(response.values[0][3])
+     document.getElementById("ml-output").innerHTML = response.values[0][8].toFixed(2);
+     setBarWidth(response.values[0][8])
  }
 
  function processNotOK() {
@@ -128,8 +128,24 @@
      console.log('checking stashed context data');
      console.log(message);
 
+     let temp = document.getElementById("temp").value;
+     let wind = document.getElementById("wind").value;
+     let precip = document.getElementById("precip").value;
+     let humidity = document.getElementById("humidity").value;
+     let pressure = document.getElementById("press").value;
+
+     const weather = {
+      temp,
+      wind,
+      precip,
+      humidity,
+      pressure
+     }
+     const payload = {...message, ...weather};
+     console.log(weather);
+
      var ajaxData = {};
-     ajaxData = message;
+     ajaxData = payload;
 
      $.ajax({
      	type: 'POST',

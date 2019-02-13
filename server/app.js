@@ -14,6 +14,7 @@
 *  limitations under the License.
 */
 
+
 /*jslint node: true*/
 /*jslint es6 */
 "use strict";
@@ -32,21 +33,24 @@ const my_XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var token = "";
 var wmlToken = "";
 
-var scoring_url = process.env.SCORING_URL;
-var wml_url = process.env.WML_URL;
-var wml_username = process.env.WML_USERNAME;
-var wml_password = process.env.WML_PASSWORD;
-var map_apikey= process.env.MAP_APIKEY;
+var scoring_url = "https://us-south.ml.cloud.ibm.com/v3/wml_instances/91e88168-d3ff-4410-99c9-422c3f2d6089/deployments/f84f4720-3b69-4cfd-864a-37d81b85b020/online";
+//old endpoint
+//https://us-south.ml.cloud.ibm.com/v3/wml_instances/91e88168-d3ff-4410-99c9-422c3f2d6089/deployments/9a5399c3-69e4-4125-a3aa-bbecfb5422d6/online
+var wml_url = "https://us-south.ml.cloud.ibm.com";
+var wml_username = "76082a78-3b73-4822-b9ee-5fcb3ccca0fd";
+var wml_password = "21186fef-f3c4-4872-a94d-385ec7d701c3";
+var map_apikey= "AIzaSyAQsWDIRvbFxp6-lGl2tenjo70S2Eejdg0";
 
 application.use(bodyParser.urlencoded({ extended: true }));
 
 application.use(express.static(__dirname + "/public"));
 
 application.post('/modelintensity', function(req, res) {
-
-    var payload = '{"fields": ["latitude", "longitude"], "values": [[' + req.body.lat + ',' + req.body.lng + ']]}';
-
-    wml_apiPost(scoring_url, wmlToken, payload, function (resp) {
+ // NOTE: manually define and pass the array(s) of values to be scored in the next line
+            const payload2 = '{"fields": ["lat", "lon", "weather__maxtempC", "weather__precip", "weather__humidity", "weather__pressure", "weather__wind"], "values": [['+ req.body.lat + ',' + req.body.lng + ',' + req.body.temp + ',' + req.body.precip + ',' + req.body.humidity + ',' + req.body.pressure + ',' + req.body.wind + ']]}';
+    //var payload = '{"fields": ["latitude", "longitude"], "values": [[' + req.body.lat + ',' + req.body.lng + ']]}';
+    console.log("hello world");
+    wml_apiPost(scoring_url, wmlToken, payload2, function (resp) {
 	let parsedPostResponse;
 	try {
 	    parsedPostResponse = JSON.parse(this.responseText);
@@ -128,7 +132,7 @@ fs.readFile("public/index.html", 'utf8', function (err,data) {
 
 getToken();
 
-const port = process.env.PORT || process.env.VCAP_APP_PORT || 3000;
+const port = 3000;
 
 application.listen(port, function () {
     console.log("Server running on port: %d", port);

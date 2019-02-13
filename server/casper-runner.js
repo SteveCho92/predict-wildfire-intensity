@@ -21,7 +21,7 @@ var spawn = require('child_process').spawn;
 var app = require('./app');
 const express = require("express");
 const application = express();
-var port = 3001;
+var port = 3000;
 
 var server = application.listen(port, function() {
   // eslint-disable-next-line no-console
