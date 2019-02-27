@@ -26,10 +26,21 @@
  var map;
  var geocoder;
  var infowindow;
- var intensity;
- var circle;
+
+ // ========================== variable for wildfire area ========================
+
+ var intensity;                   // intensity of wildfire in acre
+ var circle;                      // the circle to draw the area of wildfire
+ 
+ // ========================== variable for water body ===========================
+ var waterbody;                   // All information of every waterbody
+ var waterbodyMarker;             // The marker for waterbody
+ var toWaterLine;                 // The line from wildfire center to the closest waterbody
+ var lineSymbol;                  // The icon for create dashed line
+ var watericon;
 
  function initMap() {
+   readJson();
    map = new google.maps.Map(
      document.getElementById('map'), {zoom: 4, center: global_position});
 
@@ -78,14 +89,120 @@
    }else{
      circle.setCenter(global_position);
      circle.setRadius(radius_m);
+     circle.setMap(map);
    }
+   drawLine(radius_m>0);
  }
 
+ // calculate the radius of the wildfire area in meters
 function calculateRadius(area){
   // convert acre to m square
   area_m2 = area*4046.86;
   radius_m = Math.sqrt(area_m2 / Math.PI);
   return radius_m;
+}
+
+function drawLine(fireOccur){
+  if(fireOccur){
+    let closestWb = getClosestDistance();
+    let minLocation = closestWb['location'];
+    drawWaterbodyMarker(closestWb);
+    let lineCoord = [global_position, minLocation];
+    if(toWaterLine == undefined){
+      toWaterLine = new google.maps.Polyline({
+        path: lineCoord,
+        strokeColor: "green",
+        strokeOpacity: '0',
+        icons: [{
+          icon: lineSymbol,
+          offset: '0',
+          repeat: '20px'
+        }],
+        map: map
+      });
+    }else{
+      toWaterLine.setPath(lineCoord);
+      toWaterLine.setMap(map);
+    }
+  }else{
+    if(toWaterLine != undefined){
+      toWaterLine.setMap(null);
+    }
+    if(waterbodyMarker != undefined){
+      waterbodyMarker.setMap(null);
+    }
+  }
+}
+
+function drawWaterbodyMarker(closestWb){
+  var text = (closestWb['name'] + '\n' + getDistanceInKm(closestWb['location']).toFixed(2) + ' km')
+  if(waterbodyMarker == undefined){
+    waterbodyMarker = new google.maps.Marker({
+    position: closestWb['location'],
+    title:"waterbody",
+    label: text,
+    icon: watericon,
+    map:map
+    });
+  }else{
+    waterbodyMarker.setPosition(closestWb['location']);
+    waterbodyMarker.setTitle("waterbody");
+    waterbodyMarker.setLabel(text);
+    waterbodyMarker.setMap(map);
+  }
+    
+}
+
+function getClosestDistance(){
+  
+  let waterbodyLoc = {
+    lat:parseFloat(waterbody[0]['lat']),
+    lng:parseFloat(waterbody[0]['long'])
+  };
+  let minDistance = getDistance(waterbodyLoc);
+  let closestWaterBody = {
+    'distance':getDistance(waterbodyLoc),
+    'name':waterbody[0]['name'],
+    'location':waterbodyLoc
+  };
+  waterbody.forEach(function(wb){
+    let location = {
+      lat:parseFloat(wb['lat']),
+      lng:parseFloat(wb['long'])
+    };
+    let d = getDistance(location);
+    if(d < minDistance){
+      closestWaterBody['distance'] = d;
+      closestWaterBody['location'] = location;
+      closestWaterBody['name'] = wb['name'];
+      minDistance = d;
+    }    
+  });
+  return closestWaterBody;
+}
+
+function getDistance(location){
+  var x = location['lat'] - global_position['lat'];
+  var y = location['lng'] - global_position['lng'];
+  return Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
+}
+
+function getDistanceInKm(latlng){
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(global_position['lat']-latlng['lat']);  
+  var dLon = deg2rad(global_position['lng']-latlng['lng']);
+  var a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(latlng['lat'])) * Math.cos(deg2rad(global_position['lat'])) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg){
+  return deg * Math.PI / 180;
 }
 
  /*
@@ -189,4 +306,25 @@ function calculateRadius(area){
      	success: processOK,
      	error: processNotOK
      });
+ }
+
+ function readJson(){
+  $.getJSON( "./resources/waterbody.json", function( json ) {
+    waterbody = json;
+   });
+
+  lineSymbol = {
+    path: 'M 0,-1 0,1',
+    strokeOpacity: 1,
+    scale: 4
+  };
+
+   watericon= {
+    url: "./icons/waterdrop.png", // url
+    scaledSize: new google.maps.Size(50, 50), // scaled size
+    origin: new google.maps.Point(0,0), // origin
+    anchor: new google.maps.Point(25, 25) // anchor
+};
+
+   
  }
