@@ -26,6 +26,8 @@
  var map;
  var geocoder;
  var infowindow;
+ var intensity;
+ var circle;
 
  function initMap() {
    map = new google.maps.Map(
@@ -55,6 +57,36 @@
    }
    map.setCenter(location);
  }
+
+ // to draw the area of the wildfire
+ function drawCircle(){
+   radius_m = calculateRadius(intensity);
+   if(radius_m <= 0){
+     if(circle != undefined){
+       circle.setMap(null);
+     }
+   }
+   if(circle == undefined){
+      circle = new google.maps.Circle ({
+      map: map,
+      center: global_position,
+      radius: radius_m,
+      strokeColor: "red",
+      fillColor: "red",
+      editable: false
+    });
+   }else{
+     circle.setCenter(global_position);
+     circle.setRadius(radius_m);
+   }
+ }
+
+function calculateRadius(area){
+  // convert acre to m square
+  area_m2 = area*4046.86;
+  radius_m = Math.sqrt(area_m2 / Math.PI);
+  return radius_m;
+}
 
  /*
  * Hides the "Please select..." message and shows the predicton results
@@ -117,7 +149,10 @@
      console.log(response);
 
      document.getElementById("ml-output").innerHTML = response.values[0][8].toFixed(2);
+     // get the intensity value
+     intensity = response.values[0][8];
      setBarWidth(response.values[0][8])
+     drawCircle()
  }
 
  function processNotOK() {
